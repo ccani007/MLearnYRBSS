@@ -13,10 +13,10 @@ Description:
      utilized for training supervised machine learning models with the help of 
      tidymodels. The data has already been preprocessed and is ready to be utilized
      for analysis purposes.
-License: MIT 
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.0.0
+RoxygenNote: 7.2.3
 Depends: 
     R (>= 2.10)
 LazyData: true
