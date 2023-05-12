@@ -5,8 +5,8 @@ author:
   - "Francisco Cardozo"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Lasso Analysis: Predicting Marijuana Use}
   %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Lasso Analysis: Predicting Marijuana Use}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
@@ -23,6 +23,7 @@ knitr::opts_chunk$set(
 suppressPackageStartupMessages(library(tidymodels))
 suppressPackageStartupMessages(library(tidyverse))
 library(MLearnYRBSS)
+library(skimr)
 ```
 
 Welcome to the first vignette of our educational data package `MLearnYRBSS` on supervised machine learning methods with `tidymodels`. In this vignette, we aim to investigate the research question of whether we can predict marijuana use based on various predictors. These predictors include alcohol and other drug use, reckless behaviors such as not wearing seatbelts or driving under the influence, as well as variables related to sexual abuse, carrying guns to school, bullying, and feeling unsafe while walking to school. 
@@ -34,7 +35,7 @@ The dataset is quite extensive, with most of the data being complete. However, t
 ```{r}
 data("riskyBehaviors")
 
-skimr::skim(riskyBehaviors)
+skim(riskyBehaviors)
 ```
 
 
