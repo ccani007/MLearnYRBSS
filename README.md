@@ -3,6 +3,7 @@
 ## Authors
 - Catalina Cañizares 
 - Francisco Cardozo
+- Raymond Balise
 
 ## Purpose
 
