@@ -1,9 +1,8 @@
----
-title: "Learning Supervised Machinle Learning With YRBSS Data"
-author: "Catalina Cañizares and Francisco Cardozo"
-date: 2023-05-12
----
+# Using YRBSS Data to Practice Supervised Machine Learning
 
+## Authors
+- Catalina Cañizares 
+- Francisco Cardozo
 
 ## Purpose
 
