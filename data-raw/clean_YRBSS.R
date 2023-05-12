@@ -3,27 +3,39 @@
 # 05-11-2023
 
 
-# This script will create a clean dataset that will contain 
-# risk behaviors related alcohol use, drug use and smoking. 
-# We will also include variables related to wreckless behaviors. 
+# The following script aims to generate a clean dataset that will focus on risk 
+# behaviors related to alcohol and drug use, as well as smoking. Additionally, 
+# variables related to reckless behaviors will also be included
 
 library(tidyverse)
 
 load("inst/extData/raw_yrbs_2019.rda")
 
 raw_yrbss <- tidyREDCap::drop_labels(raw_yrbs_2019)
+# 13677x235 
+### This function is created to recode binary factors from 1 and 2 to 0 and 1.
+RecodeBinary <- function(x) {
+  x <- case_when(
+    x == 1 ~ 1,
+    x == 2 ~ 0,
+    TRUE ~ NA
+  )
+}
 
 
 riskyBehaviors <-
   raw_yrbss |>
-  mutate(ID = row_number()) %>%
+  select(
+    Q1:Q3, "raceeth", Q8:Q21, Q23, Q24, Q30:Q35, Q37,
+    Q38, Q40:Q48, Q50:Q56, Q66
+  ) |>
   mutate(
     Sex = case_when(
       Q2 == 2 ~ "Male",
       Q2 == 1 ~ "Female",
       TRUE ~ NA_character_
     )
-  ) %>%
+  ) |>
   mutate(
     Race = case_when(
       raceeth == 1 ~ "Am Indian/Alaska Native",
@@ -36,7 +48,7 @@ riskyBehaviors <-
       raceeth == 8 ~ "Multiple-Non-Hispanic",
       TRUE ~ NA_character_
     )
-  ) %>%
+  ) |>
   mutate(
     Age = case_when(
       Q1 == 1 ~ 12L,
@@ -48,7 +60,7 @@ riskyBehaviors <-
       Q1 == 7 ~ 18L,
       TRUE ~ NA_integer_
     )
-  ) %>%
+  ) |>
   mutate(
     Grade = case_when(
       Q3 == 1 ~ "9",
@@ -57,7 +69,7 @@ riskyBehaviors <-
       Q3 == 4 ~ "12",
       TRUE ~ NA_character_
     )
-  ) %>%
+  ) |>
   mutate(
     SexOrientation = case_when(
       Q66 == 1 ~ "Heterosexual",
@@ -66,163 +78,13 @@ riskyBehaviors <-
       Q66 == 4 ~ "Not sure",
       TRUE ~ NA_character_
     )
-  ) %>%
+  ) |>
   mutate(
-    SexContact = case_when(
-      Q65 == 1 ~ "No contact",
-      Q65 == 2 ~ "Females",
-      Q65 == 3 ~ "Males",
-      Q65 == 4 ~ "Females and Males",
-      TRUE ~ NA_character_
-    )
-  ) |> 
-  
+    across(c(Q19, Q23, Q24, Q30, Q34), RecodeBinary)
+  ) |>
   mutate(
-    across(
-      c(Q4, Q19, Q23, Q24, Q25, Q30, Q34, Q57, Q58, Q98),
-      RecodeTF
-    )
-  ) %>%
-  # Transforming variables that have a scale from 0 to 6 choosing the
-  #  worst case scenario.
-  mutate(
-    across(
-      c(Q9, Q10, Q12, Q13, Q14, Q15, Q20, Q21, Q22, Q60, Q61),
-      ScaleToNumber6
-    )
-  ) %>%
-  # Transforming variables that have a scale from 0 to 12 choosing the
-  #  worst case scenario.
-  mutate(
-    across(
-      c(Q16, Q17, Q18),
-      ScaleToNumber12
-    )
-  ) %>%
-  # Transforming variables that have a scale from 0 to 30 days choosing the
-  #  worst case scenario.
-  mutate(
-    across(
-      c(Q11, Q32, Q35, Q37, Q38, Q41),
-      ScaleToNumber30
-    )
-  ) %>%
-  # Transforming variables that have a scale from 0 to 40 days choosing the
-  #  worst case scenario.
-  mutate(
-    across(
-      c(Q47, Q48, Q49, Q50, Q51, Q52, Q53, Q54, Q55, Q90, Q91, Q96),
-      ScaleToNumber40
-    )
-  ) %>%
-  # Transforming variables that count number of consumption per day
-  mutate(
-    across(
-      c(Q69, Q70, Q71, Q72, Q73, Q74, Q75, Q76, Q92, Q93),
-      ScaleDays
-    )
-  ) %>%
-  # Transforming to logical variables with three options that include a response
-  #  "not sure"
-  mutate(
-    across(
-      c(Q84, Q85, Q87, Q94),
-      ScaleNotSure
-    )
-  ) %>%
-  # Transforming variables that have a scale from 0 to 20 days choosing the
-  #  worst case scenario.
-  mutate(
-    Q42 = case_when(
-      Q42 == 1 ~ 0L,
-      Q42 == 2 ~ 1L,
-      Q42 == 3 ~ 2L,
-      Q42 == 4 ~ 5L,
-      Q42 == 5 ~ 9L,
-      Q42 == 6 ~ 19L,
-      Q42 == 7 ~ 20L,
-      TRUE ~ NA_integer_
-    )
-  ) %>%
-  # Transforming variables that have a scale from 0 to 7 days into numeric value
-  mutate(
-    Q77 = case_when(
-      Q77 == 1 ~ 0L,
-      Q77 == 2 ~ 1L,
-      Q77 == 3 ~ 2L,
-      Q77 == 4 ~ 3L,
-      Q77 == 5 ~ 4L,
-      Q77 == 6 ~ 5L,
-      Q77 == 7 ~ 6L,
-      Q77 == 8 ~ 7L,
-      TRUE ~ NA_integer_
-    )
-  ) %>%
-  mutate(
-    Q78 = case_when(
-      Q78 == 1 ~ 0L,
-      Q78 == 2 ~ 1L,
-      Q78 == 3 ~ 2L,
-      Q78 == 4 ~ 3L,
-      Q78 == 5 ~ 4L,
-      Q78 == 6 ~ 5L,
-      Q78 == 7 ~ 6L,
-      Q78 == 8 ~ 7L,
-      TRUE ~ NA_integer_
-    )
-  ) %>%
-  # Transforming variables that have a scale from 0 to 5 hours into numeric
-  #  value
-  mutate(
-    Q79 = case_when(
-      Q79 == 1 ~ 0,
-      Q79 == 2 ~ 0.5,
-      Q79 == 3 ~ 1,
-      Q79 == 4 ~ 2,
-      Q79 == 5 ~ 3,
-      Q79 == 6 ~ 4,
-      Q79 == 7 ~ 5,
-      TRUE ~ NA_real_
-    )
-  ) %>%
-  mutate(
-    Q80 = case_when(
-      Q80 == 1 ~ 0,
-      Q80 == 2 ~ 0.5,
-      Q80 == 3 ~ 1,
-      Q80 == 4 ~ 2,
-      Q80 == 5 ~ 3,
-      Q80 == 6 ~ 4,
-      Q80 == 7 ~ 5,
-      TRUE ~ NA_real_
-    )
-  ) %>%
-  # Transforming variables that have a scale from 0 to 5 days into numeric value
-  mutate(
-    Q81 = case_when(
-      Q81 == 1 ~ 0L,
-      Q81 == 2 ~ 1L,
-      Q81 == 3 ~ 2L,
-      Q81 == 4 ~ 3L,
-      Q81 == 5 ~ 4L,
-      Q81 == 6 ~ 5L,
-      TRUE ~ NA_integer_
-    )
-  ) %>%
-  # Transforming variables that have a scale from 0 to 7 days into numeric value
-  mutate(
-    Q95 = case_when(
-      Q95 == 1 ~ 0L,
-      Q95 == 2 ~ 1L,
-      Q95 == 3 ~ 2L,
-      Q95 == 4 ~ 3L,
-      Q95 == 5 ~ 4L,
-      Q95 == 6 ~ 5L,
-      Q95 == 7 ~ 6L,
-      Q95 == 8 ~ 7L,
-      TRUE ~ NA_integer_
-    )
-  ) %>%
+    across(c(Q19, Q23, Q24, Q30, Q34), as.factor)
+  ) |>
   # Frequency of cigarettes is translated to numeric by assigning them to be
   #  the midpoint
   mutate(
@@ -236,7 +98,7 @@ riskyBehaviors <-
       Q33 == 7 ~ 20,
       TRUE ~ NA_real_
     )
-  ) %>%
+  ) |>
   # Frequency of drinks is translated to numeric by assigning them to be
   #  the midpoint
   mutate(
@@ -251,7 +113,7 @@ riskyBehaviors <-
       Q43 == 8 ~ 10,
       TRUE ~ NA_real_
     )
-  ) %>%
+  ) |>
   # Frequency of marijuana use is translated to numeric by assigning it to be
   #  the midpoint
   mutate(
@@ -265,7 +127,7 @@ riskyBehaviors <-
       Q45 == 7 ~ 100,
       TRUE ~ NA_real_
     )
-  ) %>%
+  ) |>
   # Transforming use of needled injected illegal drug in a scale of 0, 1 and 2
   #  times
   mutate(
@@ -275,116 +137,65 @@ riskyBehaviors <-
       Q56 == 3 ~ 2L,
       TRUE ~ NA_integer_
     )
-  ) %>%
-  # Transforming variables that have a scale from 1 to 3 into logical.
-  #  The transformation was done by assigning 3 and 1 to FALSE and 2 into TRUE
-  mutate(
-    Q39 = case_when(
-      Q39 == 2 ~ TRUE,
-      Q39 == 3 ~ FALSE,
-      Q39 == 1 ~ FALSE,
-      TRUE ~ NA
-    )
-  ) %>%
-  mutate(
-    Q63 = case_when(
-      Q63 == 2 ~ TRUE,
-      Q63 == 3 ~ FALSE,
-      Q63 == 1 ~ FALSE,
-      TRUE ~ NA
-    )
-  ) %>%
-  # Transforming variable that have a scale from 0 to 3 into numeric value
-  mutate(
-    Q82 = case_when(
-      Q82 == 1 ~ 0L,
-      Q82 == 2 ~ 1L,
-      Q82 == 3 ~ 2L,
-      Q82 == 4 ~ 3L,
-      TRUE ~ NA_integer_
-    )
-  ) %>%
-  # Transforming variable that have a scale from 0 to 4 into numeric value
-  mutate(
-    Q83 = case_when(
-      Q83 == 1 ~ 0L,
-      Q83 == 2 ~ 1L,
-      Q83 == 3 ~ 2L,
-      Q83 == 4 ~ 3L,
-      Q83 == 5 ~ 4L,
-      TRUE ~ NA_integer_
-    )
-  ) %>%
-  # Transforming variable that have a scale from 4 to 10 hours option
-  mutate(
-    Q88 = case_when(
-      Q88 == 1 ~ 4L,
-      Q88 == 2 ~ 5L,
-      Q88 == 3 ~ 6L,
-      Q88 == 4 ~ 7L,
-      Q88 == 5 ~ 8L,
-      Q88 == 6 ~ 9L,
-      Q88 == 7 ~ 10L,
-      TRUE ~ NA_integer_
-    )
-  ) %>%
-  # Cleaning suicide variables
-  # Considered Suicide
-  mutate(
-    suicide_considered = case_when(
-      Q26 == 2 ~ FALSE,
-      Q26 == 1 ~ TRUE,
-      TRUE ~ NA
-    )
-  ) %>%
-  # Planned Suicide
-  mutate(
-    suicide_planned = case_when(
-      Q27 == 2 ~ FALSE,
-      Q27 == 1 ~ TRUE,
-      TRUE ~ NA
-    )
-  ) %>%
-  # Suicide Attempts
-  mutate(
-    suicide_attempts = case_when(
-      Q28 == 1 ~ FALSE,
-      Q28 %in% 2:5 ~ TRUE,
-      TRUE ~ NA
-    )
-  ) %>%
-  # Number of Suicide Attempts
-  mutate(
-    n_suicide_attempts = case_when(
-      Q28 == 1 ~ 0L,
-      Q28 == 2 ~ 1L,
-      Q28 == 3 ~ 3L,
-      Q28 == 4 ~ 5L,
-      Q28 == 5 ~ 6L,
-      TRUE ~ NA_integer_
-    )
-  ) %>%
-  # Suicide Injury
-  mutate(
-    suicide_injury = case_when(
-      Q29 == 2 ~ TRUE,
-      Q29 == 3 ~ FALSE,
-      Q29 == 1 ~ FALSE,
-      TRUE ~ NA
-    )
-  ) %>%
-  select(
-    -c(
-      Q2, Q5, Q1, Q3, Q6, Q7, Q66, Q65, Q26, Q27, Q28, Q29, Q8, Q31,
-      Q36, Q40, Q44, Q46, Q59, Q64, Q68, Q86, Q89, Q99, q6orig,
-      q7orig, site, raceeth, bmipct
-    ),
-    -starts_with("QN")
-  ) %>%
-  select(
-    weight, stratum, psu, ID, Age, Sex, Grade, Race,
-    SexOrientation, SexContact, suicide_considered, suicide_planned,
-    suicide_attempts, n_suicide_attempts, suicide_injury, everything()
-  )
+  ) |>
+  mutate(Q8 = case_when(
+    Q8 == 1 ~ "Never", 
+    Q8 == 2 ~ "Rarely", 
+    Q8 == 3 ~ "Sometimes", 
+    Q9 == 4 ~ "Most of the Times", 
+    Q10 == 5 ~ "Always", 
+    TRUE ~ NA_character_
+  )) |> 
+  mutate(Q44 = as.character(Q44)) |> 
+  mutate(MarihuanaUse = case_when(
+    Q45 == 0 ~ 0, 
+    Q45 %in% c(1, 2, 3, 4, 5, 6, 7) ~ 1, 
+    TRUE ~ NA
+  )) |> 
+  mutate(MarihuanaUse = as.factor(MarihuanaUse)) |> 
+  select(-c(Q2, Q1, Q3, Q66, Q66, raceeth)) |>
+  rename(
+    SeatBealtUse = Q8,
+    DrinkingDriver = Q9,
+    DrivingDrinking = Q10,
+    TextingDriving = Q11,
+    WeaponCarrying = Q12,
+    WeaponCarryingSchool = Q13,
+    GunCarrying = Q14,
+    UnsafeAtSchool = Q15,
+    InjuredInSchool = Q16,
+    PhysicalFight = Q17,
+    SchoolPhysicalFight = Q18,
+    SexualAbuse = Q19,
+    TimesSexualAbuse = Q20,
+    SexualAbuseByPartner = Q21,
+    Bullying = Q23,
+    CyberBullying = Q24,
+    SmokingCigarette = Q30,
+    AgeFirstCig = Q31,
+    DaysSmokingCigarette = Q32,
+    CigPerDay = Q33,
+    Vaping = Q34,
+    DaysVaping = Q35,
+    DaysSmokelessTobacco = Q37,
+    DaysSmokingCigar = Q38,
+    AgeFirstAlcohol = Q40,
+    DaysAlcohol = Q41,
+    BingeDrinking = Q42,
+    LargestNumberOfDrinks = Q43,
+    SourceAlcohol = Q44,
+    TimesMarihuanaUseLife = Q45,
+    AgeFirstMarihuana = Q46,
+    TimesMarihuanaUse30Days = Q47,
+    TimessSyntethicMarihuanaUseLife = Q48,
+    TimesCocaine = Q50,
+    TimesInhalant = Q51,
+    TimesHeroin = Q52,
+    TimesMetha = Q53,
+    TimesEcstasy = Q54,
+    TimesSteroids = Q55,
+    TimesNeedle = Q56
+  ) |>
+  select(Sex, Race, Age, Grade, SexOrientation, everything())
 
-usethis::use_data(clean_yrbs_2019, overwrite = TRUE)
+usethis::use_data(riskyBehaviors, overwrite = TRUE)
