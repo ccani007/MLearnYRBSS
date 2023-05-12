@@ -1,0 +1,169 @@
+---
+title: "Lasso Analysis: Predicting Marijuana Use"
+author: 
+  - "Catalina Canizares"
+  - "Francisco Cardozo"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Lasso Analysis: Predicting Marijuana Use}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+suppressPackageStartupMessages(library(tidymodels))
+suppressPackageStartupMessages(library(tidyverse))
+library(MLearnYRBSS)
+```
+
+Welcome to the first vignette of our educational data package `MLearnYRBSS` on supervised machine learning methods with `tidymodels`. In this vignette, we aim to investigate the research question of whether we can predict marijuana use based on various predictors. These predictors include alcohol and other drug use, reckless behaviors such as not wearing seatbelts or driving under the influence, as well as variables related to sexual abuse, carrying guns to school, bullying, and feeling unsafe while walking to school. 
+
+# Explore the Data
+
+The dataset is quite extensive, with most of the data being complete. However, there is one variable, Seat belt use, which has a significant percentage of missing values and will be excluded from the model. On the other hand, all the other variables have a completeness rate higher than 65%. As for the outcome variable, Marijuana Use, it has a completeness rate of 85%.
+
+```{r}
+data("riskyBehaviors")
+
+skimr::skim(riskyBehaviors)
+```
+
+
+Let's examine the two groups within the Marijuana Use variable. Specifically, we observe that the number of students who have not smoked Marijuana is nearly double that of those who have.
+
+```{r}
+riskyBehaviors |> count(MarihuanaUse) 
+```
+
+Let's explore the relationship between Marijuana use and other forms of substance use. It's apparent that Marijuana use is associated with the use of vaping, alcohol, cigarettes, and synthetic Marijuana.
+
+```{r}
+riskyBehaviors |>
+  filter(!is.na(MarihuanaUse)) |>
+  mutate(MarihuanaUse = case_when(
+    MarihuanaUse == 0 ~ "No",
+    MarihuanaUse == 1 ~ "Yes"
+  )) |>
+  group_by(MarihuanaUse) |>
+  summarise(across(c(
+    DaysSmokingCigarette, DaysAlcohol, TimesInhalant,
+    TimessSyntethicMarihuanaUseLife, TimesCocaine,
+    TimesHeroin, TimesMetha, TimesEcstasy, TimesSteroids,
+    TimesNeedle, BingeDrinking, DaysVaping 
+  ), mean, na.rm = TRUE)) |>
+  pivot_longer(-MarihuanaUse) |>
+  ggplot(aes(value, fct_reorder(name, value), fill = MarihuanaUse)) +
+  geom_col(alpha = 0.8, position = "dodge") +
+  scale_x_continuous() +
+  labs(x = "", fill = "Marihuana Use", y = NULL, fill = NULL) +
+  theme_classic()
+  
+```
+
+Let's now examine the relationship between Marijuana use and other behaviors. It appears that Marijuana use is correlated with risky behaviors such as driving under the influence, physical altercations, and carrying weapons, with these behaviors being more prevalent among adolescents who have consumed Marijuana.
+
+```{r}
+riskyBehaviors |>
+  filter(!is.na(MarihuanaUse)) |>
+  mutate(MarihuanaUse = case_when(
+    MarihuanaUse == 0 ~ "No",
+    MarihuanaUse == 1 ~ "Yes"
+  )) |>
+  group_by(MarihuanaUse) |>
+  summarise(across(c(
+    DrinkingDriver, DrivingDrinking, WeaponCarrying, WeaponCarryingSchool, GunCarrying, UnsafeAtSchool, InjuredInSchool, 
+    PhysicalFight, TimesSexualAbuse
+  ), mean, na.rm = TRUE)) |>
+  pivot_longer(-MarihuanaUse) |>
+  ggplot(aes(value, fct_reorder(name, value), fill = MarihuanaUse)) +
+  geom_col(alpha = 0.8, position = "dodge") +
+  scale_x_continuous() +
+  labs(x = "", fill = "Marihuana Use", y = NULL, fill = NULL) +
+  theme_classic()
+```
+
+# Build the Lasso Model 
+
+## Spending our data
+
+We are going to start by splitting our data into training and testing sets, and creating cross-validation samples
+
+```{r}
+set.seed(568)
+
+risky_split <- riskyBehaviors |> 
+  filter(!is.na(MarihuanaUse)) |> 
+  select(-SeatBealtUse ) |> 
+  select(MarihuanaUse, everything()) %>%
+  initial_split(strata = MarihuanaUse)
+
+risky_train <- training(risky_split)
+risky_test <- testing(risky_split)
+```
+
+```{r}
+set.seed(123)
+risky_folds <- vfold_cv(risky_train)
+risky_folds
+```
+
+## Cooking the model 
+
+### Recipe
+
+```{r}
+risky_rec <- 
+  recipe(MarihuanaUse ~ ., data = risky_train) |> 
+  step_select(-AgeFirstMarihuana, -TimesMarihuanaUse30Days, 
+              -TimesMarihuanaUseLife, -TimessSyntethicMarihuanaUseLife ) |> 
+  step_impute_mode(all_nominal_predictors()) |> 
+  step_impute_mean(all_numeric_predictors()) |> 
+  step_normalize(all_numeric_predictors()) |> 
+  step_dummy(all_nominal_predictors()) 
+  
+bake(prep(risky_rec),  new_data = risky_train) |> glimpse()
+  
+```
+
+### Engine
+
+```{r}
+risky_spec <- 
+  logistic_reg(penalty = 0.001, mixture = 1) |> 
+  set_engine("glmnet") |> 
+  set_mode("classification")
+  
+```
+
+### Workflow
+
+```{r}
+risky_wf <- 
+  workflow() |> 
+  add_recipe(risky_rec) |> 
+  add_model(risky_spec) 
+
+```
+
+
+### Estimate the Model and Importance Plot
+
+```{r}
+library(vip)
+
+risky_wf |> 
+  fit(data = risky_train) |> 
+  extract_fit_parsnip() |> 
+  vip()
+
+```
+

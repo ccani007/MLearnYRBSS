@@ -85,59 +85,6 @@ riskyBehaviors <-
   mutate(
     across(c(Q19, Q23, Q24, Q30, Q34), as.factor)
   ) |>
-  # Frequency of cigarettes is translated to numeric by assigning them to be
-  #  the midpoint
-  mutate(
-    Q33 = case_when(
-      Q33 == 1 ~ 0,
-      Q33 == 2 ~ 1,
-      Q33 == 3 ~ 1,
-      Q33 == 4 ~ 3.5,
-      Q33 == 5 ~ 8,
-      Q33 == 6 ~ 15,
-      Q33 == 7 ~ 20,
-      TRUE ~ NA_real_
-    )
-  ) |>
-  # Frequency of drinks is translated to numeric by assigning them to be
-  #  the midpoint
-  mutate(
-    Q43 = case_when(
-      Q43 == 1 ~ 0,
-      Q43 == 2 ~ 1.5,
-      Q43 == 3 ~ 3,
-      Q43 == 4 ~ 4,
-      Q43 == 5 ~ 5,
-      Q43 == 6 ~ 6.5,
-      Q43 == 7 ~ 8.5,
-      Q43 == 8 ~ 10,
-      TRUE ~ NA_real_
-    )
-  ) |>
-  # Frequency of marijuana use is translated to numeric by assigning it to be
-  #  the midpoint
-  mutate(
-    Q45 = case_when(
-      Q45 == 1 ~ 0,
-      Q45 == 2 ~ 1.5,
-      Q45 == 3 ~ 6,
-      Q45 == 4 ~ 14.5,
-      Q45 == 5 ~ 29.5,
-      Q45 == 6 ~ 69.5,
-      Q45 == 7 ~ 100,
-      TRUE ~ NA_real_
-    )
-  ) |>
-  # Transforming use of needled injected illegal drug in a scale of 0, 1 and 2
-  #  times
-  mutate(
-    Q56 = case_when(
-      Q56 == 1 ~ 0L,
-      Q56 == 2 ~ 1L,
-      Q56 == 3 ~ 2L,
-      TRUE ~ NA_integer_
-    )
-  ) |>
   mutate(Q8 = case_when(
     Q8 == 1 ~ "Never", 
     Q8 == 2 ~ "Rarely", 
@@ -148,8 +95,8 @@ riskyBehaviors <-
   )) |> 
   mutate(Q44 = as.character(Q44)) |> 
   mutate(MarihuanaUse = case_when(
-    Q45 == 0 ~ 0, 
-    Q45 %in% c(1, 2, 3, 4, 5, 6, 7) ~ 1, 
+    Q45 == 1 ~ 0, 
+    Q45 %in% c(2, 3, 4, 5, 6, 7) ~ 1, 
     TRUE ~ NA
   )) |> 
   mutate(MarihuanaUse = as.factor(MarihuanaUse)) |> 
@@ -197,5 +144,6 @@ riskyBehaviors <-
     TimesNeedle = Q56
   ) |>
   select(Sex, Race, Age, Grade, SexOrientation, everything())
+
 
 usethis::use_data(riskyBehaviors, overwrite = TRUE)
