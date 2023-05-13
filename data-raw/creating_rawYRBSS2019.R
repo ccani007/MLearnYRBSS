@@ -6,6 +6,6 @@
 # This data comes from the tidyYRBS package in my 
 # github repo: https://github.com/ccani007/tidyYRBS.git
 
-raw_yrbss <- load("inst/extData/raw_yrbs_2019.rda")
+rawYRBSS2019 <- load("inst/extData/raw_yrbs_2019.rda")
 
-usethis::use_data(raw_yrbss, overwrite = TRUE)
+usethis::use_data(rawYRBSS2019 , overwrite = TRUE)

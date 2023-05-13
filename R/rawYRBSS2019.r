@@ -1,10 +1,10 @@
 #' Youth Risk Behavior Surveillance System 2019
 #' 
-#' @title raw_yrbss
+#' @title rawYRBSS2019
 #'
 #' @docType data
 #' 
-#' @usage data(raw_yrbss)
+#' @usage data(rawYRBSS2019)
 #' 
 #' @description This is the raw imported 2019 YRBS Data. This data set monitors
 #'     priority health risk behaviors that contribute markedly to the leading 
@@ -29,4 +29,4 @@
 #'  }
 #'
 #' 
-"raw_yrbss"
+"rawYRBSS2019"

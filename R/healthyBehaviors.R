@@ -1,0 +1,65 @@
+#'@title healthyBehaviors
+#'
+#' @description This dataset is a subset of the 2019 Youth Risk Behavior 
+#'        Surveillance System (YRBSS) data, consisting of variables related 
+#'        to demographics such as sex, race, age, grade, and sexual orientation,
+#'        as well as variables related to diet, physical exercise, sexual 
+#'        behaviors, and  sleep, in adolescents. 
+#'        However, it is important to note that this subset is intended for 
+#'        teaching purposes only and should not be used to draw definitive 
+#'        conclusions. This is because all variables related to weights, 
+#'        strata, and PSU used in the original survey have been removed 
+#'        from this subset.
+#'
+#' @docType data
+#'
+#' @usage data(healthyBehaviors)
+#'
+#' @format A tibble with 13677 rows and 44 variables:
+#' \describe{
+#' \item{Sex}{Type label here}
+#' \item{Race}{Type label here}
+#' \item{Age}{Type label here}
+#' \item{Grade}{Type label here}
+#' \item{SexOrientation}{Type label here}
+#' \item{HadSex}{Type label here}
+#' \item{AgeSex}{Type label here}
+#' \item{SexPartners}{Type label here}
+#' \item{SexPartners3Months}{Type label here}
+#' \item{AlcoholOrDrugsSex}{Type label here}
+#' \item{UseCondom}{Type label here}
+#' \item{BirthControl}{Type label here}
+#' \item{SexOfSexualPartner}{Type label here}
+#' \item{DescribeWeight}{Type label here}
+#' \item{WeightLoss}{Type label here}
+#' \item{DrinkFruitJuice}{Type label here}
+#' \item{EatFruit}{Type label here}
+#' \item{EatSalad}{Type label here}
+#' \item{EatPotatoes}{Type label here}
+#' \item{EatCarrots}{Type label here}
+#' \item{EatOtherVeggies}{Type label here}
+#' \item{DrinkSoda}{Type label here}
+#' \item{DrinkMilk}{Type label here}
+#' \item{EatBreakfast}{Type label here}
+#' \item{PhysicalActivity}{Type label here}
+#' \item{HoursTV}{Type label here}
+#' \item{HoursVideoGames}{Type label here}
+#' \item{DaysPEClass}{Type label here}
+#' \item{SportsTeam}{Type label here}
+#' \item{ConcussionSports}{Type label here}
+#' \item{HIVTested}{Type label here}
+#' \item{STDTested}{Type label here}
+#' \item{DentistVisit}{Type label here}
+#' \item{HasAsthma}{Type label here}
+#' \item{HoursSleep}{Type label here}
+#' \item{GradesInSchool}{Type label here}
+#' \item{SportsDrinks}{Type label here}
+#' \item{DrinksWater}{Type label here}
+#' \item{FoodAllergy}{Type label here}
+#' \item{MuscleStrengthening}{Type label here}
+#' \item{IndoorTanning}{Type label here}
+#' \item{UseSunscreen}{Type label here}
+#' \item{DifficultyConcentrating}{Type label here}
+#' \item{EnglishProficiency}{Type label here}
+#'}
+'healthyBehaviors'

@@ -1,4 +1,4 @@
-# Cleaning the YRBSS 
+# Creating the Risky Behaviors Dataset
 # Catalina Canizares
 # 05-11-2023
 
@@ -12,7 +12,8 @@ library(tidyverse)
 load("inst/extData/raw_yrbs_2019.rda")
 
 raw_yrbss <- tidyREDCap::drop_labels(raw_yrbs_2019)
-# 13677x235 
+# 13677 x 235 
+
 ### This function is created to recode binary factors from 1 and 2 to 0 and 1.
 RecodeBinary <- function(x) {
   x <- case_when(
@@ -26,8 +27,8 @@ RecodeBinary <- function(x) {
 riskyBehaviors <-
   raw_yrbss |>
   select(
-    Q1:Q3, "raceeth", Q8:Q21, Q23, Q24, Q30:Q35, Q37,
-    Q38, Q40:Q48, Q50:Q56, Q66
+    Q1:Q3, "raceeth", Q8:Q21, Q23, Q24, Q30:Q36, Q37,
+    Q38, Q40:Q49, Q50:Q57, Q66, Q91
   ) |>
   mutate(
     Sex = case_when(
@@ -80,27 +81,27 @@ riskyBehaviors <-
     )
   ) |>
   mutate(
-    across(c(Q19, Q23, Q24, Q30, Q34), RecodeBinary)
+    across(c(Q19, Q23, Q24, Q30, Q34, Q57), RecodeBinary)
   ) |>
   mutate(
-    across(c(Q19, Q23, Q24, Q30, Q34), as.factor)
+    across(c(Q19, Q23, Q24, Q30, Q34, Q57), as.factor)
   ) |>
   mutate(Q8 = case_when(
     Q8 == 1 ~ "Never", 
     Q8 == 2 ~ "Rarely", 
     Q8 == 3 ~ "Sometimes", 
-    Q9 == 4 ~ "Most of the Times", 
-    Q10 == 5 ~ "Always", 
+    Q8 == 4 ~ "Most of the Times", 
+    Q8 == 5 ~ "Always", 
     TRUE ~ NA_character_
   )) |> 
-  mutate(Q44 = as.character(Q44)) |> 
+  mutate(across(c(Q44, Q36), as.character)) |> 
   mutate(MarihuanaUse = case_when(
     Q45 == 1 ~ 0, 
     Q45 %in% c(2, 3, 4, 5, 6, 7) ~ 1, 
     TRUE ~ NA
   )) |> 
   mutate(MarihuanaUse = as.factor(MarihuanaUse)) |> 
-  select(-c(Q2, Q1, Q3, Q66, Q66, raceeth)) |>
+  select(-c(Q2, Q1, Q3, Q66, raceeth)) |>
   rename(
     SeatBealtUse = Q8,
     DrinkingDriver = Q9,
@@ -124,6 +125,7 @@ riskyBehaviors <-
     CigPerDay = Q33,
     Vaping = Q34,
     DaysVaping = Q35,
+    SourceVaping = Q36, 
     DaysSmokelessTobacco = Q37,
     DaysSmokingCigar = Q38,
     AgeFirstAlcohol = Q40,
@@ -134,16 +136,20 @@ riskyBehaviors <-
     TimesMarihuanaUseLife = Q45,
     AgeFirstMarihuana = Q46,
     TimesMarihuanaUse30Days = Q47,
-    TimessSyntethicMarihuanaUseLife = Q48,
+    TimesSyntheticMarihuanaUseLife = Q48,
+    PainMedicine = Q49,
     TimesCocaine = Q50,
     TimesInhalant = Q51,
     TimesHeroin = Q52,
     TimesMetha = Q53,
     TimesEcstasy = Q54,
     TimesSteroids = Q55,
-    TimesNeedle = Q56
+    TimesNeedle = Q56,
+    OfferedDrugsSchool = Q57, 
+    HallucinogenicDrugs = Q91
   ) |>
   select(Sex, Race, Age, Grade, SexOrientation, everything())
 
+# 13677 x 50
 
 usethis::use_data(riskyBehaviors, overwrite = TRUE)

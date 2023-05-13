@@ -23,7 +23,7 @@ Authors@R:
     email = "Balise@miami.edu",
     role = c("aut"),
    comment = c(ORCID = "0000-0002-9856-5901")
-   )
+   ))
 Description: 
      This package includes the YRBSS 2019 data obtained from the CDC, which can be 
      utilized for training supervised machine learning models with the help of 

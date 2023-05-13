@@ -57,9 +57,9 @@ riskyBehaviors |>
   group_by(MarihuanaUse) |>
   summarise(across(c(
     DaysSmokingCigarette, DaysAlcohol, TimesInhalant,
-    TimessSyntethicMarihuanaUseLife, TimesCocaine,
+    TimesSyntheticMarihuanaUseLife, TimesCocaine,
     TimesHeroin, TimesMetha, TimesEcstasy, TimesSteroids,
-    TimesNeedle, BingeDrinking, DaysVaping 
+    TimesNeedle, BingeDrinking, DaysVaping, HallucinogenicDrugs, PainMedicine
   ), mean, na.rm = TRUE)) |>
   pivot_longer(-MarihuanaUse) |>
   ggplot(aes(value, fct_reorder(name, value), fill = MarihuanaUse)) +
@@ -125,7 +125,7 @@ risky_folds
 risky_rec <- 
   recipe(MarihuanaUse ~ ., data = risky_train) |> 
   step_select(-AgeFirstMarihuana, -TimesMarihuanaUse30Days, 
-              -TimesMarihuanaUseLife, -TimessSyntethicMarihuanaUseLife ) |> 
+              -TimesMarihuanaUseLife, -TimesSyntheticMarihuanaUseLife ) |> 
   step_impute_mode(all_nominal_predictors()) |> 
   step_impute_mean(all_numeric_predictors()) |> 
   step_normalize(all_numeric_predictors()) |> 
