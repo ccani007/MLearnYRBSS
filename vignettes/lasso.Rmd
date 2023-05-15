@@ -24,6 +24,8 @@ suppressPackageStartupMessages(library(tidymodels))
 suppressPackageStartupMessages(library(tidyverse))
 library(MLearnYRBSS)
 library(skimr)
+library(gtsummary)
+library(gt)
 ```
 
 Welcome to the first vignette of our educational data package `MLearnYRBSS` on supervised machine learning methods with `tidymodels`. In this vignette, we aim to investigate the research question of whether we can predict marijuana use based on various predictors. These predictors include alcohol and other drug use, reckless behaviors such as not wearing seatbelts or driving under the influence, as well as variables related to sexual abuse, carrying guns to school, bullying, and feeling unsafe while walking to school. 
@@ -44,6 +46,26 @@ Let's examine the two groups within the Marijuana Use variable. Specifically, we
 ```{r}
 riskyBehaviors |> count(MarihuanaUse) 
 ```
+
+Lets explore the relationship between marijuana use and the demographic variables.
+
+
+```{r}
+riskyBehaviors |> 
+  select(Sex, Race, Grade, SexOrientation, MarihuanaUse) |> 
+  filter(!is.na(MarihuanaUse)) |> 
+   mutate(MarihuanaUse = case_when(
+    MarihuanaUse == 0 ~ "No",
+    MarihuanaUse == 1 ~ "Yes"
+  )) |> 
+  tbl_summary(by = MarihuanaUse, percent = "row") |> 
+  modify_header(label ~ "**Variable**") |> 
+  modify_caption("**Table 1. Demographic Characteristics by Marihuana Use**") |> 
+  add_p(pvalue_fun = ~ style_pvalue(.x, digits = 2)) |> 
+  as_gt() |> 
+  tab_source_note(gt::md("*Data source: `MLearnYRBSS::riskyBehaviors`*"))
+```
+
 
 Let's explore the relationship between Marijuana use and other forms of substance use. It's apparent that Marijuana use is associated with the use of vaping, alcohol, cigarettes, and synthetic Marijuana.
 
@@ -92,6 +114,7 @@ riskyBehaviors |>
   theme_classic()
 ```
 
+ 
 # Build the Lasso Model 
 
 ## Spending our data
@@ -139,7 +162,7 @@ bake(prep(risky_rec),  new_data = risky_train) |> glimpse()
 
 ```{r}
 risky_spec <- 
-  logistic_reg(penalty = 0.001, mixture = 1) |> 
+  logistic_reg(penalty = 1, mixture = 1) |> 
   set_engine("glmnet") |> 
   set_mode("classification")
   
@@ -166,5 +189,23 @@ risky_wf |>
   extract_fit_parsnip() |> 
   vip()
 
+```
+
+Lasso allows us to see the direction of the variables
+
+```{r}
+risky_wf |> 
+  fit(data = risky_train) |> 
+  extract_fit_parsnip() |> 
+  vi() |> 
+  group_by(Sign) %>%
+  slice_max(Importance, n = 15) %>%
+  ungroup() %>%
+  ggplot(aes(Importance, fct_reorder(Variable, Importance), fill = Sign)) + 
+  geom_col() +
+  facet_wrap(vars(Sign), scales = "free_y") +
+  labs(y = NULL) +
+  theme(legend.position = "none")
+  
 ```
 

@@ -64,7 +64,7 @@ data(riskyBehaviors)
 }
 \description{
 This dataset is a subset of the 2019 Youth Risk Behavior
-Surveillance System (YRBSS) data, consisting of 45 variables related
+Surveillance System (YRBSS) data, consisting of 50 variables related
 to demographics such as sex, race, age, grade, and sexual orientation,
 as well as substance use and reckless behaviors in adolescents.
 However, it is important to note that this subset is intended for

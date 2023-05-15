@@ -57,6 +57,15 @@ A tibble with 13677 rows and 44 variables:
 data(healthyBehaviors)
 }
 \description{
-describe your data set here
+This dataset is a subset of the 2019 Youth Risk Behavior
+Surveillance System (YRBSS) data, consisting of variables related
+to demographics such as sex, race, age, grade, and sexual orientation,
+as well as variables related to diet, physical exercise, sexual
+behaviors, and  sleep, in adolescents.
+However, it is important to note that this subset is intended for
+teaching purposes only and should not be used to draw definitive
+conclusions. This is because all variables related to weights,
+strata, and PSU used in the original survey have been removed
+from this subset.
 }
 \keyword{datasets}

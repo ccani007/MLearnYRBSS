@@ -39,7 +39,9 @@ Imports:
   skimr,
   tidymodels,
   tidyverse,
-  vip
+  vip,
+  gt,
+  gtsummary
 LazyData: true
 Suggests: 
     knitr,
