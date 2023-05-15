@@ -97,6 +97,7 @@ healthyBehaviors <-
   mutate(across(c(Q58, Q98), RecodeBinary)) |> 
   mutate(across(Q62:Q63, RecodeNoYesNo)) |> 
   mutate(across(c(Q84, Q85, Q87, Q94), RecodeYesNoNo)) |> 
+  mutate(across(c(Q58, Q98, Q62:Q63,Q84, Q85, Q87, Q94), as.factor)) |> 
   mutate(across(c(Q65, Q67, Q68, Q89, Q97, Q99), as.character)) |> 
   select(-c(Q2, Q1, Q3, Q66, raceeth)) |> 
   rename(
@@ -142,4 +143,5 @@ healthyBehaviors <-
   ) |> 
   select(Sex, Race, Age, Grade, SexOrientation, everything())
   
+usethis::use_data(healthyBehaviors, overwrite = TRUE)
 

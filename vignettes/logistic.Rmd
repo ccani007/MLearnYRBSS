@@ -1,0 +1,215 @@
+---
+title: "logistic"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{logistic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+suppressPackageStartupMessages(library(tidymodels))
+suppressPackageStartupMessages(library(tidyverse))
+library(MLearnYRBSS)
+library(skimr)
+library(gtsummary)
+library(gt)
+library(vip)
+```
+
+# Import
+
+```{r}
+data("healthyBehaviors")
+```
+
+# Exploratory Data Analysis
+
+```{r}
+skim(healthyBehaviors)
+```
+
+```{r}
+healthyBehaviors |> count(DifficultyConcentrating)
+```
+
+```{r}
+healthyBehaviors |>
+  select(Sex, Grade, SexOrientation, DifficultyConcentrating) |>
+  filter(!is.na(DifficultyConcentrating)) |>
+  mutate(DifficultyConcentrating = case_when(
+    DifficultyConcentrating == 0 ~ "No",
+    DifficultyConcentrating == 1 ~ "Yes"
+  )) |>
+  tbl_summary(by = DifficultyConcentrating, percent = "row") |>
+  modify_header(label ~ "**Variable**") |>
+  modify_caption("**Table 1. Demographic Characteristics by Difficulty Concentrating**") |>
+  add_p(pvalue_fun = ~ style_pvalue(.x, digits = 2)) |>
+  as_gt() |>
+  tab_source_note(gt::md("*Data source: `MLearnYRBSS::healthyBehaviors`*"))
+```
+
+
+Let's explore the relationship between difficulty concentrating, diet, sleep, physical activity and hours of playing video games. 
+
+```{r}
+healthyBehaviors |>
+  filter(!is.na(DifficultyConcentrating)) |>
+  mutate(DifficultyConcentrating = case_when(
+    DifficultyConcentrating == 0 ~ "No",
+    DifficultyConcentrating == 1 ~ "Yes"
+  )) |>
+  group_by(DifficultyConcentrating) |>
+  summarise(across(c(
+    DrinkFruitJuice, EatFruit, EatSalad,
+    EatPotatoes, EatCarrots, EatOtherVeggies, DrinkSoda,
+    DrinkMilk, EatBreakfast, PhysicalActivity, HoursTV, HoursVideoGames, HoursSleep, SportsDrinks, DrinksWater
+  ), mean, na.rm = TRUE)) |>
+  pivot_longer(-DifficultyConcentrating) |>
+  ggplot(aes(value, fct_reorder(name, value), fill = DifficultyConcentrating)) +
+  geom_col(alpha = 0.8, position = "dodge") +
+  scale_x_continuous() +
+  labs(x = "", fill = "Difficulty Concentrating", y = NULL, fill = NULL) +
+  theme_classic()
+```
+
+
+# Make Train and Tests Sets
+
+```{r}
+set.seed(123)
+
+concentrate_split <- healthyBehaviors |>
+  filter(!is.na(DifficultyConcentrating)) |>
+  select(
+    -contains("Sex"), -BirthControl, -UseCondom, -HIVTested,
+    -STDTested, -DentistVisit, -HasAsthma, -GradesInSchool,
+    -FoodAllergy, -MuscleStrengthening, -IndoorTanning, -UseSunscreen, -EnglishProficiency, -Race
+  ) |>
+  initial_split(strata = DifficultyConcentrating)
+
+concentrate_train <- training(concentrate_split)
+concentrate_test <- testing(concentrate_split)
+```
+
+# The Model
+
+## Preprocessor
+
+```{r}
+healthy_rec <-
+  recipe(DifficultyConcentrating ~ ., data = concentrate_train) |>
+  step_impute_mode(all_nominal_predictors()) |>
+  step_impute_mean(all_numeric_predictors()) |>
+  step_dummy(all_nominal_predictors())
+
+bake(prep(healthy_rec), new_data = concentrate_train) |> glimpse()
+```
+
+## Specify Model
+
+```{r}
+healthy_spec <-
+  logistic_reg() |>
+  set_mode("classification") |>
+  set_engine("glm")
+```
+
+## Analysis Object 
+
+```{r}
+healthy_wf <-
+  workflow() |>
+  add_recipe(healthy_rec) |>
+  add_model(healthy_spec)
+```
+
+## Fit 
+
+```{r}
+healthy_fit <- fit(healthy_wf, data = concentrate_train) |>
+  tidy(exponentiate = TRUE, conf.int = TRUE, conf.level = .95) |>
+  mutate(p.value = scales::pvalue(p.value))
+
+healthy_fit
+```
+
+## Fit results 
+
+```{r}
+fit(healthy_wf, data = concentrate_train) |>
+  tidy(exponentiate = TRUE, conf.int = TRUE, conf.level = .95) |> 
+  filter(term !=  "(Intercept)" ) |> 
+  ggplot(aes(reorder(term, estimate),
+             y = (estimate),
+             ymin = conf.low,
+             ymax = conf.high,
+             )) +
+  geom_pointrange(alpha = 0.8) +
+  labs(y = "Odd Ratio CI",
+       title="Multiple Logistic Regression Model for \nDifficulty Concentrating",
+       caption = "N = 6,329 USA Adolescents Using the YRBS 2019 Data",
+       x = "") +
+  ggeasy::easy_center_title() +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  coord_flip() +
+  theme_minimal(base_size = 13) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  theme(legend.position = "none")
+```
+
+
+# Evaluate in Training
+
+```{r}
+concentrate_pred <- 
+fit(healthy_wf, 
+    data = concentrate_train) |> 
+    augment(., new_data = concentrate_train)
+  
+```
+
+## Accuracy
+```{r}
+concentrate_pred |> 
+  metrics(truth = DifficultyConcentrating, estimate = .pred_class)
+```
+## ROC
+
+```{r}
+concentrate_pred |> 
+  roc_auc(DifficultyConcentrating, .pred_0)
+```
+```{r}
+concentrate_pred |> 
+  roc_curve(DifficultyConcentrating, .pred_0) |> 
+  ggplot(aes(1 - specificity, sensitivity)) +
+  geom_abline(lty = 2, color = "gray80", size = 1.5) +
+  geom_path(show.legend = FALSE, alpha = 0.6, size = 1.2) +
+  coord_equal()
+
+```
+
+# Evaluate in Test
+
+```{r}
+
+concentrate_last_pred <- 
+  last_fit(healthy_wf, 
+           split = concentrate_split, 
+           metrics = metric_set(yardstick::roc_auc, 
+                                yardstick::sens, 
+                                yardstick::spec, 
+                                yardstick::kap,
+                                yardstick::mn_log_loss))
+
+collect_metrics(concentrate_last_pred)
+
+```
