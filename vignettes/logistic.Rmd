@@ -70,7 +70,7 @@ healthyBehaviors |>
   summarise(across(c(
     DrinkFruitJuice, EatFruit, EatSalad,
     EatPotatoes, EatCarrots, EatOtherVeggies, DrinkSoda,
-    DrinkMilk, EatBreakfast, PhysicalActivity, HoursTV, HoursVideoGames, HoursSleep, SportsDrinks, DrinksWater
+    DrinkMilk, EatBreakfast, PhysicalActivity, HoursTV, HoursVideoGames, HoursSleep, SportsDrinks, DrinksWater, ConcussionSports
   ), mean, na.rm = TRUE)) |>
   pivot_longer(-DifficultyConcentrating) |>
   ggplot(aes(value, fct_reorder(name, value), fill = DifficultyConcentrating)) +
@@ -192,8 +192,9 @@ concentrate_pred |>
   roc_curve(DifficultyConcentrating, .pred_0) |> 
   ggplot(aes(1 - specificity, sensitivity)) +
   geom_abline(lty = 2, color = "gray80", size = 1.5) +
-  geom_path(show.legend = FALSE, alpha = 0.6, size = 1.2) +
-  coord_equal()
+  geom_path(alpha = 0.6, size = 1.2) +
+  theme_classic() +
+  theme(aspect.ratio=1) 
 
 ```
 
