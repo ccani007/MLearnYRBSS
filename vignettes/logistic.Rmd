@@ -86,7 +86,8 @@ healthyBehaviors |>
 ```{r}
 set.seed(123)
 
-concentrate_split <- healthyBehaviors |>
+concentrate_split <- 
+  healthyBehaviors |>
   filter(!is.na(DifficultyConcentrating)) |>
   select(
     -contains("Sex"), -BirthControl, -UseCondom, -HIVTested,
@@ -181,6 +182,7 @@ fit(healthy_wf,
 concentrate_pred |> 
   metrics(truth = DifficultyConcentrating, estimate = .pred_class)
 ```
+
 ## ROC
 
 ```{r}
